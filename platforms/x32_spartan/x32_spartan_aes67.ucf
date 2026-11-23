@@ -1,0 +1,19 @@
+NET "clk_100MHz" TNM_NET = "clk_100MHz";
+TIMESPEC TS_clk_100MHz = PERIOD "clk_100MHz" TS_FPGACLK * 6.25 HIGH 50 %;
+TIMESPEC TS_TIG_16_TO_100 = FROM "FPGACLK" TO "clk_100MHz" TIG;
+TIMESPEC TS_TIG_100_TO_16 = FROM "clk_100MHz" TO "FPGACLK" TIG;
+TIMESPEC TS_TIG_50_TO_100 = FROM "clk_50MHz" TO "clk_100MHz" TIG;
+TIMESPEC TS_TIG_100_TO_50 = FROM "clk_100MHz" TO "clk_50MHz" TIG;
+
+TIMESPEC TS_TIG_100_TO_FS512 = FROM "clk_100MHz" TO "clk_fs512" TIG;
+TIMESPEC TS_TIG_FS512_TO_100 = FROM "clk_fs512" TO "clk_100MHz" TIG;
+
+NET "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/mii_converters_inst/rmiigen.rmii_phy_if_inst/mac_mii_rxc" TNM_NET = "aes67_mii_clk";
+NET "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/mii_converters_inst/rmiigen.rmii_phy_if_inst/mac_mii_txc" TNM_NET = "aes67_mii_clk";
+TIMESPEC TS_aes67_mii_clk = PERIOD "aes67_mii_clk" 25 MHz HIGH 50 %;
+TIMESPEC TS_TIG_100_TO_MII = FROM "clk_100MHz" TO "aes67_mii_clk" TIG;
+TIMESPEC TS_TIG_MII_TO_100 = FROM "aes67_mii_clk" TO "clk_100MHz" TIG;
+
+TIMEGRP "aes67_media_mult_src" = MULTS("u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/aes67_top_inst/ptp_inst/b2v_wallclock/u_media/*") FFS("u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/aes67_top_inst/ptp_inst/b2v_wallclock/u_media/media_clock_nsec_latch*");
+TIMEGRP "aes67_media_mult_dst" = FFS("u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/aes67_top_inst/ptp_inst/b2v_wallclock/u_media/media_mult_reg*");
+TIMESPEC TS_aes67_media_mult = FROM "aes67_media_mult_src" TO "aes67_media_mult_dst" 20 ns;

@@ -60,6 +60,7 @@ generate_soc() {
 	: >"$OUT/aes67_bridge.log"
 	for family in lattice xilinx; do
 		"$py" "$aes67" --target aes67_bridge --family $family --no-servo-csr --no-metering-csr \
+			--no-hw-ptp-csr --no-ctrl-csr \
 			>>"$OUT/aes67_bridge.log" 2>&1 \
 			|| { tail -20 "$OUT/aes67_bridge.log"; die "AES67 generate.py ($family) failed"; }
 	done

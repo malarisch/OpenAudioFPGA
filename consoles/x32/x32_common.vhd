@@ -42,6 +42,7 @@ entity x32_common is
 		spi_mosi_i			: in  std_logic;
 		spi_miso_o			: out std_logic;
 		cfg_bits_o			: out std_logic_vector(7 downto 0);	-- CSR core_config (clk_50m_i domain)
+		irq_o				: out std_logic;
 
 		-- UART of the IO boards (i.MX25 UART3)
 		uart3_txd_i			: in  std_logic;
@@ -172,6 +173,7 @@ architecture rtl of x32_common is
 	signal c67_rmii_tx_en	: std_logic;
 	signal c67_rmii_txd		: std_logic_vector(1 downto 0);
 	signal c67_pll_ref		: std_logic;
+	signal c67_irq			: std_logic;
 
 	signal pll_rst			: std_logic;
 	signal rst				: std_logic;
@@ -214,6 +216,14 @@ begin
 	pll_rst_o <= pll_rst;
 	io_rst_o <= rst;
 	online_o <= online;
+
+	-- registered: the request is a combination of event registers
+	process (clk_50m_i)
+	begin
+		if rising_edge(clk_50m_i) then
+			irq_o <= c67_irq;
+		end if;
+	end process;
 	conv_nrst_o <= online;
 
 	aes50_sys_mode <= f_aes50_sys_mode;
@@ -464,7 +474,7 @@ begin
 			aes67_rmii_rxd_i => c67_rmii_rxd,
 			aes67_rmii_tx_en_o => c67_rmii_tx_en,
 			aes67_rmii_txd_o => c67_rmii_txd,
-			aes67_irq_o => open,
+			aes67_irq_o => c67_irq,
 			aes67_pll_ref_o => c67_pll_ref);
 
 	------------------------------------------------------------------------

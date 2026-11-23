@@ -4,3 +4,5 @@
 [submodule "ext/aes67"]
 	path = ext/AES67
 	url = https://github.com/malarisch/AES67
+	branch = test
+	update = merge

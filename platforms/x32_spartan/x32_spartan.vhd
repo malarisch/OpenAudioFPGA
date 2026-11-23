@@ -49,7 +49,7 @@ entity x32_spartan is
 
 		-- i.MX25
 		SPI_nCS0				: in  std_logic;	-- control bus (SPIBone), R15 = IO_L02P_1/LDC1 (FPGA_SS0)
-		SPI_nCS1				: in  std_logic;	-- not used, P15 = IO_L02N_1/LDC0 (FPGA_SS1)
+		SPI_nCS1				: out std_logic;	-- used as IRQ
 		SPI_CLK					: in  std_logic;
 		SPI_MOSI				: in  std_logic;
 		SPI_MISO				: out std_logic;
@@ -208,7 +208,10 @@ architecture rtl of x32_spartan is
 	signal card_out			: std_logic_vector(3 downto 0);
 	signal dsp_dout			: std_logic_vector(3 downto 0);
 	signal dsp_din			: std_logic_vector(3 downto 0);
+	signal host_irq			: std_logic;
 begin
+	SPI_nCS1 <= '0' when host_irq = '1' else 'Z';
+
 	------------------------------------------------------------------------
 	-- clocks
 	------------------------------------------------------------------------
@@ -348,6 +351,7 @@ begin
 			pll_rst_o => pripll_rst,
 			io_rst_o => rst,
 			online_o => open,
+			irq_o => host_irq,
 			pll_in_o => PLL_IN,
 			pll_out_i => clk_49_152MHz,
 			pll_ncs_o => PLL_nCS,

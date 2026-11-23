@@ -83,8 +83,8 @@ NET "D_FS2" LOC = F1;
 
 NET "SPI_CLK" LOC = R14;
 NET "SPI_MOSI" LOC = T14;
-NET "SPI_nCS0" LOC = R15;		# FPGA_SS0, IO_L02P_1/LDC1
-NET "SPI_nCS1" LOC = P15;		# FPGA_SS1, IO_L02N_1/LDC0 (not used by the gateware)
+NET "SPI_nCS0" LOC = R15;		# FPGA_SS0, IO_L02P_1/LDC1: nCS
+NET "SPI_nCS1" LOC = P15;		# FPGA_SS1, IO_L02N_1/LDC0: nIRQ
 NET "SPI_MISO" LOC = P13;
 
 NET "aes50a_clk_a_rx_in" LOC = A12;
@@ -135,6 +135,19 @@ TIMESPEC TS_FPGACLK = PERIOD "FPGACLK" 16 MHz HIGH 50 %;
 TIMESPEC TS_PLL_OUT = PERIOD "PLL_OUT" 49.152 MHz HIGH 50 %;
 TIMESPEC TS_clk_fs512 = PERIOD "clk_fs512" 24.576 MHz HIGH 50 %;
 TIMESPEC TS_clk_fs256 = PERIOD "clk_fs256" 12.288 MHz HIGH 50 %;
+# The 50 MHz DCM outputs are derived from FPGACLK, so ISE times 16 MHz <-> 50 MHz as one
+# synchronous clock (requirement 2.5 ns). They are asynchronous, as in the clock groups of
+# x32_lattice/openx32.sdc. This also covers the reset "online" of the 16 MHz domain, which drives
+# asynchronous resets in the other domains (x32_lattice: BLOCK RESETPATHS).
+# ISE derives no PERIOD for the DCM outputs once the TNM "FPGACLK" is used in a FROM:TO (the
+# TIGs), so the PERIOD of these groups is given explicitly (dcm2: CLKFX = 16 MHz * 25 / 8).
+# Note: "TS_FPGACLK * 3.125" multiplies the frequency, i.e. 62.5 ns / 3.125 = 20 ns.
+NET "clk_50MHz" TNM_NET = "clk_50MHz";
+NET "clk_50MHz_inv" TNM_NET = "clk_50MHz_inv";
+TIMESPEC TS_clk_50MHz = PERIOD "clk_50MHz" TS_FPGACLK * 3.125 HIGH 50 %;
+TIMESPEC TS_clk_50MHz_inv = PERIOD "clk_50MHz_inv" TS_FPGACLK * 3.125 PHASE 10 ns HIGH 50 %;
+TIMESPEC TS_TIG_16_TO_50 = FROM "FPGACLK" TO "clk_50MHz" TIG;
+TIMESPEC TS_TIG_50_TO_16 = FROM "clk_50MHz" TO "FPGACLK" TIG;
 
 # pin-voltage-settings
 NET "AD0_BCLK" IOSTANDARD = LVCMOS33;
