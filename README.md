@@ -82,7 +82,7 @@ oscillator (x3.072).
 | | `x32_lattice` | `x32_spartan` |
 |---|---|---|
 | Default | 1 x AES50 + 1 x AES67 | 1 x AES50 |
-| AES67 | yes | wired up (`create_project.tcl aes67`), but XST stops in the AES67 sources (`'succ` in the MAC `framing.vhd`) |
+| AES67 | yes | yes |
 | AUX converters | M8000 ADC + PCM1690 DAC | CS42438 |
 | Vendor parts | 2 PLLs, IO registers, DDR clock outputs (Clarity Designer, `ip/`) | DCM, BUFG, IDDR2 / ODDR2 (`ip/`) |
 

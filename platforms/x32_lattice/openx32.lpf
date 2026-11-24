@@ -72,10 +72,11 @@ BLOCK PATH FROM CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_
 BLOCK PATH FROM CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_eth_buffer_bridge_inst/rx_valid_reg" ;
 BLOCK PATH TO CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_soc_aes67_bridge_inst/eth_buf_rx_valid_meta*" ;
 BLOCK PATH TO CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_soc_aes67_bridge_inst/eth_buf_rx_len_latched*" ;
-# Not ported (do not exist after synthesis here): *speed_o* (RMII speed is a
-# constant), rx_overflow_reg, wallclock ppb_adj_reg, bclk generated clock
-# (Synplify turns it into a clock enable on PLL_OUT_c).
-#
+BLOCK PATH FROM CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_eth_buffer_bridge_inst/rp_pub*" TO CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_eth_buffer_bridge_inst/rd_ptr_w*" ;
+BLOCK PATH FROM CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_eth_buffer_bridge_inst/rp_req" TO CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_eth_buffer_bridge_inst/rp_req_meta" ;
+BLOCK PATH FROM CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_eth_buffer_bridge_inst/wp_ack" TO CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_eth_buffer_bridge_inst/wp_ack_meta" ;
+BLOCK PATH TO CELL "u_x32/u_core/gen_aes67.u_aes67/soc_top_inst/wb_bridge_top_inst/aes67_wb_bridge_inst/litex_eth_buffer_bridge_inst/tx_req_meta" ;
+
 LOCATE COMP "fpgaclk" SITE "D11" ;
 LOCATE COMP "DA_nRESET" SITE "V1" ;
 LOCATE COMP "AD_nRESET" SITE "A8" ;

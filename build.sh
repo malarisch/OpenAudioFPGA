@@ -135,128 +135,9 @@ build_xilinx() {
 }
 
 # ---------------------------------------------------------------------------
-# summaries
+# summaries (build_summary.py)
 # ---------------------------------------------------------------------------
-summary_lattice() {
-	python3 - "$OUT/x32_lattice.mrp" "$OUT/x32_lattice.twr" <<'PY'
-import re, sys
-mrp = open(sys.argv[1], errors="replace").read() if len(sys.argv) > 1 else ""
-try:
-    twr = open(sys.argv[2], errors="replace").read()
-except OSError:
-    twr = ""
-
-print("  Resources")
-for label, pat in [
-    ("Registers", r"Number of registers:\s+(\d+) out of\s+(\d+) \((\d+)%\)"),
-    ("Slices", r"Number of SLICEs:\s+(\d+) out of\s+(\d+) \((\d+)%\)"),
-    ("LUT4", r"Number of LUT4s:\s+(\d+) out of\s+(\d+) \((\d+)%\)"),
-    ("Block RAM (EBR)", r"Number of block RAMs:\s+(\d+) out of\s+(\d+) \((\d+)%\)"),
-    ("IO pins", r"Number of PIO sites used:\s+(\d+) out of\s+(\d+) \((\d+)%\)"),
-    ("PLLs", r"Number of PLLs:\s+(\d+) out of\s+(\d+) \((\d+)%\)"),
-]:
-    m = re.search(pat, mrp)
-    if m:
-        print("    %-18s %6s of %6s  %3s%%" % (label, m.group(1), m.group(2), m.group(3)))
-m = re.search(r"^\s*MULT18X18D\s+(\d+)", mrp, re.M)
-if m:
-    print("    %-18s %6s" % ("MULT18X18D", m.group(1)))
-
-def table(section):
-    """rows (preference, constraint, actual, failed) of one 'Report Summary' table"""
-    rows, name = [], ""
-    for line in section.splitlines():
-        if line.count("|") < 3:
-            continue
-        raw = line.split("|")
-        cells = [c.strip() for c in raw]
-        if cells[0].startswith("Preference"):
-            continue
-        # long names are wrapped at the column width, in the middle of a word
-        name += raw[0] if len(raw[0].rstrip()) == len(raw[0]) else raw[0].rstrip() + " "
-        if cells[1] == "" and cells[2] == "":
-            if not cells[0]:
-                name = ""
-            continue
-        failed = line.rstrip().endswith("*")
-        rows.append((" ".join(name.split()).rstrip(";").strip(), cells[1], cells[2], failed))
-        name = ""
-    return rows
-
-def short(name):
-    name = re.sub(r"\s+[\d.]+ (MHz|X)$", "", name)
-    name = re.sub(r"^FREQUENCY\s*", "", name) or "(all other clocks)"
-    return name if len(name) <= 60 else "..." + name[-57:]
-
-print("  Timing")
-if not twr:
-    print("    no timing report")
-sections = twr.split("Report Summary")[1:]
-for title, section in zip(("setup", "hold"), sections):
-    section = section.split("Clock Domains Analysis")[0]
-    rows = [r for r in table(section) if r[1] not in ("-", "")]
-    bad = [r for r in rows if r[3]]
-    print("    %s: %s" % (title, "%d preference(s) NOT met" % len(bad) if bad else "all preferences met"))
-    for name, want, got, failed in rows:
-        if failed:
-            print("      %-60s %12s -> %12s  <-- not met" % (short(name), want, got))
-        elif title == "setup" and name.startswith("FREQUENCY"):
-            print("      %-60s %12s -> %12s" % (short(name), want, got))
-m = re.findall(r"Timing errors:\s*\d+ \(setup\), \d+ \(hold\)", twr)
-if m:
-    print("    " + m[-1])
-PY
-}
-
-summary_xilinx() {
-	python3 - "$OUT/x32_spartan.mrp" "$OUT/x32_spartan.twr" <<'PY'
-import re, sys
-def read(p):
-    try:
-        return open(p, errors="replace").read()
-    except OSError:
-        return ""
-mrp, twr = read(sys.argv[1]), read(sys.argv[2])
-
-print("  Resources")
-for label, pat in [
-    ("Slice flip flops", r"Number of Slice Flip Flops:\s+([\d,]+) out of\s+([\d,]+)\s+(\d+)%"),
-    ("4 input LUTs", r"Total Number of 4 input LUTs:\s+([\d,]+) out of\s+([\d,]+)\s+(\d+)%"),
-    ("Occupied slices", r"Number of occupied Slices:\s+([\d,]+) out of\s+([\d,]+)\s+(\d+)%"),
-    ("Block RAM", r"Number of RAMB16BWEs:\s+([\d,]+) out of\s+([\d,]+)\s+(\d+)%"),
-    ("Multipliers", r"Number of MULT18X18SIOs:\s+([\d,]+) out of\s+([\d,]+)\s+(\d+)%"),
-    ("IO pins", r"Number of bonded IOBs:\s+([\d,]+) out of\s+([\d,]+)\s+(\d+)%"),
-    ("Global buffers", r"Number of BUFGMUXs:\s+([\d,]+) out of\s+([\d,]+)\s+(\d+)%"),
-    ("DCMs", r"Number of DCMs:\s+([\d,]+) out of\s+([\d,]+)\s+(\d+)%"),
-]:
-    m = re.search(pat, mrp)
-    if m:
-        print("    %-18s %6s of %6s  %3s%%" % (label, m.group(1).replace(",", ""), m.group(2).replace(",", ""), m.group(3)))
-
-print("  Timing")
-if not twr:
-    print("    no timing report")
-for block in re.split(r"\n(?=Timing constraint: )", twr)[1:]:
-    head = " ".join(block.split("\n\n")[0].split())
-    name = re.search(r"Timing constraint: (\S+)", head).group(1)
-    m = re.search(r"PERIOD TIMEGRP \"[^\"]+\" (.*?) HIGH", head)
-    want = m.group(1).strip() if m else ""
-    err = re.search(r"(\d+) timing errors? detected", block)
-    per = re.search(r"Minimum period is\s+([\d.]+)ns", block)
-    if not per:
-        continue
-    period = float(per.group(1))
-    flag = "  <-- %s errors" % err.group(1) if err and err.group(1) != "0" else ""
-    print("      %-24s %-32s min. period %7.3f ns = %7.3f MHz%s" % (name, want, period, 1000.0 / period, flag))
-m = re.search(r"Timing errors:\s*\d+[^\n]*", twr)
-if m:
-    print("    " + " ".join(m.group(0).split()))
-if "All constraints were met" in twr:
-    print("    All constraints were met.")
-PY
-}
-
-report() {	# report <name> <title> <rc> <summary function>
+report() {	# report <name> <title> <rc> <family of build_summary.py>
 	echo
 	echo "== $2"
 	if [ "$3" -eq 0 ]; then
@@ -265,7 +146,7 @@ report() {	# report <name> <title> <rc> <summary function>
 		echo "  BUILD FAILED, see build/$1.log"
 		grep -E '^ERROR|^@E|Error:' "$OUT/$1.log" 2>/dev/null | head -5 | sed 's/^/    /'
 	fi
-	[ -s "$OUT/$1.mrp" ] && "$4"
+	[ -s "$OUT/$1.mrp" ] && python3 "$ROOT/build_summary.py" "$4" "$OUT/$1.mrp" "$OUT/$1.twr"
 }
 
 # ---------------------------------------------------------------------------
@@ -311,7 +192,7 @@ fi
 [ -n "$pid_lattice" ] && { wait "$pid_lattice"; rc_lattice=$?; }
 [ -n "$pid_xilinx" ] && { wait "$pid_xilinx"; rc_xilinx=$?; }
 
-[ $do_lattice -eq 1 ] && report x32_lattice "X32 / Lattice ECP5 LFE5U-25F" $rc_lattice summary_lattice
-[ $do_xilinx -eq 1 ] && report x32_spartan "X32 / Xilinx Spartan-3A XC3S1400A" $rc_xilinx summary_xilinx
+[ $do_lattice -eq 1 ] && report x32_lattice "X32 / Lattice ECP5 LFE5U-25F" $rc_lattice lattice
+[ $do_xilinx -eq 1 ] && report x32_spartan "X32 / Xilinx Spartan-3A XC3S1400A" $rc_xilinx xilinx
 
 [ $rc_lattice -eq 0 ] && [ $rc_xilinx -eq 0 ]

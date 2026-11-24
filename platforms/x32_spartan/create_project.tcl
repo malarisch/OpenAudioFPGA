@@ -122,6 +122,7 @@ set aes67_sources {
 	ext/AES67/FPGA/soc_top.vhd
 	ext/AES67/FPGA/sysclk_pll_gen.vhd
 	ext/AES67/FPGA/wb_bridge_top.vhd
+	ext/AES67/FPGA/rxdv_link_detector.vhd
 	ext/AES67/litex_soc/build/aes67_bridge_xilinx/gateware/litex_soc_aes67_bridge.v
 	platforms/x32_spartan/x32_spartan_aes67.ucf
 }

@@ -308,6 +308,9 @@
         <Source name="../../ext/AES67/FPGA/wb_bridge_top.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
+        <Source name="../../ext/AES67/FPGA/rxdv_link_detector.vhd" type="VHDL" type_short="VHDL">
+            <Options/>
+        </Source>
         <Source name="../../ext/AES67/litex_soc/build/aes67_bridge_lattice/gateware/litex_soc_aes67_bridge.v" type="Verilog" type_short="Verilog">
             <Options/>
         </Source>
